@@ -98,6 +98,7 @@ public class Enigma {
         messagesEncryptionTime.add(System.nanoTime()-begin);
         messagesAfterEncrypt.add(res.toString());
         return res.toString();
+
     }
 
     public Rotor getRotorByIndex(int id) {
