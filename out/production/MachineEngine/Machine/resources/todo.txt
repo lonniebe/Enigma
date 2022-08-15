@@ -1,0 +1,2 @@
+3. how many indexes/rotor tops to enter
+-encrypting the same ecrypted message gets the origin message

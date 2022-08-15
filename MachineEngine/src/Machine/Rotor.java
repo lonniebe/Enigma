@@ -71,26 +71,6 @@ public class Rotor {
         return notch == 0;
     }
 
-    public boolean shiftDown()
-    {
-        int size=lengthOfABC;
-        Layer temp=layers[size-1];
-
-        for (int i = size-1; i >0; i--) {
-            layers[i]=layers[i-1];
-        }
-        layers[0]=temp;
-
-        notch+=1;
-        if(notch==layers.length)
-        {
-            notch=0;
-            return true;
-        }
-        this.Top=getTop();
-        return false;
-    }
-
     public void setInitialNotch(int initialNotch) {
         this.initialNotch = initialNotch;
     }

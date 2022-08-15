@@ -1,8 +1,6 @@
 package Machine;
 import Machine.DTO.HardwareDTO;
-import Machine.generated.CTEEnigma;
-import Machine.generated.CTEMachine;
-import Machine.generated.CTERotor;
+import Machine.generated.*;
 import javafx.util.Pair;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -29,7 +27,7 @@ public class FileLoader {
         cteEnigma = (CTEEnigma) jaxbUnmarshaller.unmarshal(file);
         availableRotors = cteEnigma.getCTEMachine().getCTERotors().getCTERotor().size();
         usedRotors=cteEnigma.getCTEMachine().getRotorsCount();
-        sizeOfABC = cteEnigma.getCTEMachine().getABC().replaceAll("[\\n\\r\\t]+", "").length();
+        sizeOfABC = cteEnigma.getCTEMachine().getABC().toUpperCase().replaceAll("[\\n\\r\\t]+", "").length();
         ABC= cteEnigma.getCTEMachine().getABC().replaceAll("[\\n\\r\\t]+", "");
         checkForFileValidation();
     }
@@ -48,8 +46,6 @@ public class FileLoader {
         if(machine.getRotorsCount()>availableRotors)
             throw new Exception("Rotor count cannot be greater than the amount of the available rotors in the machine.");
     }
-
-
     public HardwareDTO getHardware() throws Exception {
         Rotor[] rotors=getRotorsFromEnigma();
         Reflector[] reflectors=getReflectorsFromEnigma();
@@ -80,10 +76,7 @@ public class FileLoader {
         }
         return rotors;
     }
-
     public void checkRotorValidation(int notch,int id,int[] rotorsMapping) throws Exception {
-        //if(!checkRotorMapping(rotorsMapping) || notch<0 || notch>sizeOfABC)
-          //  throw new Exception("there is a problem with the notch or the mapping inside the rotor.");
         if(!checkRotorMapping(rotorsMapping))
             throw new Exception("the mappings inside the rotor are invalid.");
         if(notch<0 || notch>sizeOfABC)
@@ -91,7 +84,6 @@ public class FileLoader {
         if(id<0 || id>availableRotors)
             throw new Exception("Rotor id cannot be greater than the amount of available rotors / lower than 0");
     }
-
     public boolean checkRotorMapping(int[] rotorsMapping){
         for(int num:rotorsMapping){
             if(num!=2){
@@ -100,20 +92,19 @@ public class FileLoader {
         }
         return true;
     }
-
-
     public Reflector[] getReflectorsFromEnigma() throws Exception {
         int reflectorCount = cteEnigma.getCTEMachine().getCTEReflectors().getCTEReflector().size();
         if(reflectorCount<1 || reflectorCount>5)
-            throw new Exception("Reflector: number of reflectors are is not valid.");
+            throw new Exception("Count of reflectors in file must be between 1 and 5.");
 
         Reflector[] reflectors = new Reflector[reflectorCount];
+        CTEReflectors refs=cteEnigma.getCTEMachine().getCTEReflectors();
         for (int i = 0; i < reflectorCount; i++) {
             int[] reflector = new int[sizeOfABC];
-            String id=cteEnigma.getCTEMachine().getCTEReflectors().getCTEReflector().get(i).getId();
+            String id=refs.getCTEReflector().get(i).getId();
             for (int j = 0; j < sizeOfABC / 2; j++) {
-                int input = cteEnigma.getCTEMachine().getCTEReflectors().getCTEReflector().get(i).getCTEReflect().get(j).getInput() - 1;
-                int output = cteEnigma.getCTEMachine().getCTEReflectors().getCTEReflector().get(i).getCTEReflect().get(j).getOutput() - 1;
+                int input = refs.getCTEReflector().get(i).getCTEReflect().get(j).getInput() - 1;
+                int output = refs.getCTEReflector().get(i).getCTEReflect().get(j).getOutput() - 1;
                 if(!reflectionIOChecker(input,output) || input==output || !isRomic(id))
                     throw new Exception("Reflector : invalid input from file.");
                 reflector[input] = j;
@@ -123,11 +114,7 @@ public class FileLoader {
         }
         return reflectors;
     }
-
     public boolean reflectionIOChecker(int input,int output){
-        if(input<0 || output<0 || input>sizeOfABC || output>sizeOfABC)
-            return false;
-        return true;
+        return input >= 0 && output >= 0 && input <= sizeOfABC && output <= sizeOfABC;
     }
-
 }

@@ -35,7 +35,8 @@ public class Settings {
             Map<Character, Character> plugs = getPlugsFromUsers(sc);
             if(plugs==null)
                 return null;
-            return new SettingsDTO(chosenRotors, rotorTops, chosenReflector, plugs);
+
+            return new SettingsDTO(chosenRotors,new int[chosenRotors.length], rotorTops, chosenReflector, plugs);
         }catch(Exception exception){
             System.out.println(exception.getMessage());
         }
@@ -51,13 +52,13 @@ public class Settings {
             default:return -1;
         }
     }
-    public static SettingsDTO setRandomSettings(String ABC,int reflectionCount,int numOfRotors){
+    public static SettingsDTO setRandomSettings(String ABC,int numOfRotors){
         String chosenReflector=randomReflector(reflectorCount);
         int countOfChosenRotors=randInt(1,numOfRotors);
         int[] chosenRotors=randomNumbers(countOfChosenRotors,numOfRotors);
         char[] rotorTops=randomTops(countOfChosenRotors,ABC);
         Map<Character,Character> plugs=new HashMap<>();
-        return new SettingsDTO(chosenRotors,rotorTops,chosenReflector,plugs);
+        return new SettingsDTO(chosenRotors,new int[chosenRotors.length],rotorTops,chosenReflector,plugs);
     }
     public static String randomReflector(int reflectorCount){
         int chosenReflector=randInt(1,reflectorCount);
@@ -148,13 +149,11 @@ public class Settings {
     }
 
 
-
     public static boolean checkPlugs(Map<Character,Character> res,char key, char value){
         if (ABC.indexOf(key) == -1 || ABC.indexOf(value) == -1 ||
                 res.containsKey(key) || res.containsKey(value))
             return false;
         return true;
-
     }
 
 
@@ -173,9 +172,7 @@ public class Settings {
             }catch(Exception e){
                 System.out.println("Invalid input for rotor tops.");
             }
-
         }
-
     }
     public static char[] getRotorTopsFromUser(Scanner sc){
         while(true)
@@ -211,7 +208,7 @@ public class Settings {
             String[] numbers = input.split(",");
             int[] indexes = new int[numbers.length];
             try {
-                if(numbers.length>99)
+                if(numbers.length>99 || input.length()%2==0)
                     throw new Exception();
                 for (int i = 0; i < numbers.length; i++) {
                     indexes[i] = Integer.parseInt(numbers[i]);

@@ -3,26 +3,42 @@ package Machine.DTO;
 import java.util.ArrayList;
 
 public class HistoryDTO {
-    private ArrayList<Long> messagesEncryptionTime;
-    private ArrayList<String> messagesBeforeEncrypt;
-    private ArrayList<String> messagesAfterEncrypt;
 
-    public HistoryDTO(ArrayList<Long> time,ArrayList<String> before,ArrayList<String> after){
-        messagesAfterEncrypt=after;
-        messagesBeforeEncrypt=before;
-        messagesEncryptionTime=time;
+    private ArrayList<String> SettingsHistory;
+    private ArrayList<ArrayList<Long>> messagesEncryptionTime;
+    private ArrayList<ArrayList<String>> messagesBeforeEncrypt;
+    private ArrayList<ArrayList<String>> messagesAfterEncrypt;
+    private ArrayList<Integer> encryptedMessages;
+    private int fileIndexOfSettings=0;
+
+    public HistoryDTO(ArrayList<String> settingsHistory,
+                      ArrayList<ArrayList<Long>> messagesEncryptionTime,
+                      ArrayList<ArrayList<String>> messagesBeforeEncrypt,
+                      ArrayList<ArrayList<String>> messagesAfterEncrypt,
+                      ArrayList<Integer> encryptedMessages) {
+        SettingsHistory = settingsHistory;
+        this.messagesEncryptionTime = messagesEncryptionTime;
+        this.messagesBeforeEncrypt = messagesBeforeEncrypt;
+        this.messagesAfterEncrypt = messagesAfterEncrypt;
+        this.encryptedMessages = encryptedMessages;
     }
 
 
-    public ArrayList<String> getMessagesAfterEncrypt() {
+    public ArrayList<ArrayList<String>> getMessagesAfterEncrypt() {
         return messagesAfterEncrypt;
     }
 
-    public ArrayList<String> getMessagesBeforeEncrypt() {
+    public ArrayList<ArrayList<String>> getMessagesBeforeEncrypt() {
         return messagesBeforeEncrypt;
     }
 
-    public ArrayList<Long> getMessagesEncryptionTime() {
+    public ArrayList<ArrayList<Long>> getMessagesEncryptionTime() {
         return messagesEncryptionTime;
     }
+
+    public ArrayList<Integer> getEncryptedMessages() {return encryptedMessages;}
+
+    public int getFileIndexOfSettings() {return fileIndexOfSettings;}
+
+    public ArrayList<String> getSettingsHistory() {return SettingsHistory;}
 }

@@ -1,13 +1,10 @@
 package Machine;
-import Machine.DTO.HardwareDTO;
-import Machine.DTO.HistoryDTO;
-import Machine.DTO.MachineDTO;
-import Machine.DTO.SettingsDTO;
+import Machine.DTO.*;
+import UI.Settings;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+import static UI.UIManager.getFormattedInitialSettings;
 
 public class Enigma {
 
@@ -15,19 +12,27 @@ public class Enigma {
     public static final String ANSI_RESET = "\u001B[0m";
     private String ABC;
     private String chosenReflectorId;
-    private int encryptedMessages=0;
     private int usedRotors;
     private int[] chosenRotors;
     private PlugBoard plugBoard;
     private Reflector[] reflectors;
     private Rotor[] rotors;
-
     private String FormattedRotorsIndexes;
+    private ArrayList<String> SettingsHistory;
 
-    ArrayList<Long> messagesEncryptionTime=new ArrayList<>();
-    ArrayList<String> messagesBeforeEncrypt=new ArrayList<>();
-    ArrayList<String> messagesAfterEncrypt=new ArrayList<>();
+    private int encryptMessages=0;
+    public void setInitialFormattedSettings(String Settings) {
+
+    }
+    private ArrayList<ArrayList<EncryptionDTO>> historyPerSettings;
+    private int fileIndexOfSettings=-1;
+
+
     private char[] InitialRotorsTop;
+
+    public void setInitialFormat(){
+
+    }
 
     public int getCountOfRotors(){
         return rotors.length;
@@ -44,13 +49,22 @@ public class Enigma {
         this.usedRotors=hardwareDTO.getRotorsCount();
         this.chosenRotors=new int[rotors.length];
         this.ABC=hardwareDTO.getABC();
-        resetHistory();
     }
-
+    public void initSettings(SettingsDTO settingsDTO){
+        chosenRotors=settingsDTO.getUserRotorIndexes();
+        chosenReflectorId=settingsDTO.getUserChosenReflection();
+        InitialRotorsTop=settingsDTO.getUserRotorsTop();
+        plugBoard=new PlugBoard(settingsDTO.getUserChosenPlugs());
+        usedRotors=chosenRotors.length;
+        adjustRotorTops();
+        resetHistory();
+        historyPerSettings.add(new ArrayList<>());
+    }
     public void resetHistory(){
-        encryptedMessages=0;
-        messagesBeforeEncrypt=new ArrayList<>();
-        messagesAfterEncrypt=new ArrayList<>();
+        fileIndexOfSettings=0;
+        SettingsHistory=new ArrayList<>();
+        historyPerSettings= new ArrayList<>();
+        SettingsHistory.add(getFormattedInitialSettings());
     }
     public void printState(char c){
         System.out.println("Encrypting: "+c);
@@ -86,21 +100,18 @@ public class Enigma {
         }
     }
     public String encryptMessage(String message){
+        fileIndexOfSettings+=1;
         long begin = System.nanoTime();
-        messagesBeforeEncrypt.add(message);
-        encryptedMessages+=1;
-        StringBuilder res= new StringBuilder();
+        StringBuilder encryptedMessage= new StringBuilder();
         for (char ch: message.toCharArray()) {
             ShiftRotors();
             char encryptedChar=encryptLetter(ch);
-            res.append(encryptedChar);
+            encryptedMessage.append(encryptedChar);
         }
-        messagesEncryptionTime.add(System.nanoTime()-begin);
-        messagesAfterEncrypt.add(res.toString());
-        return res.toString();
-
+        EncryptionDTO encryptionDTO=new EncryptionDTO(message,encryptedMessage.toString(),System.nanoTime()-begin);
+        historyPerSettings.get(0).add(encryptionDTO);
+        return encryptedMessage.toString();
     }
-
     public Rotor getRotorByIndex(int id) {
         for (Rotor rotor : rotors) {
             if (rotor.getRotorId() == id) {
@@ -109,7 +120,6 @@ public class Enigma {
         }
         return null;
     }
-
     public Reflector getReflectorById(String id){
         for(Reflector reflector:reflectors){
             if(Objects.equals(reflector.getReflectorId(), chosenReflectorId))
@@ -135,7 +145,6 @@ public class Enigma {
         }
         return plugBoard.getValue(ABC.charAt(nextIndex));
     }
-
     public void ShiftRotors() {
         boolean shiftNext=true;
         for (int i = chosenRotors.length-1; i >=0 ; i--) {
@@ -144,7 +153,6 @@ public class Enigma {
             }
         }
     }
-
     public String getFormattedInitiatedRotorsTops(){
         StringBuilder res=new StringBuilder();
         res.append("<");
@@ -160,31 +168,17 @@ public class Enigma {
         StringBuilder res=new StringBuilder();
         res.append("<");
         for (int i = chosenRotors.length-1; i >=0 ; i--) {
-            res.append(getRotorByIndex(chosenRotors[i]).getTop());
-            res.append(",");
+            res.append(getRotorByIndex(chosenRotors[i]).getTop()).append(",");;
         }
         res= new StringBuilder(res.substring(0, res.length() - 1));
         res.append(">");
         return res.toString();
     }
-
-    public void initSettings(SettingsDTO settingsDTO){
-        chosenRotors=settingsDTO.getUserRotorIndexes();
-        chosenReflectorId=settingsDTO.getUserChosenReflection();
-        InitialRotorsTop=settingsDTO.getUserRotorsTop();
-        plugBoard=new PlugBoard(settingsDTO.getUserChosenPlugs());
-        usedRotors=chosenRotors.length;
-        adjustRotorTops();
-        InitiateRotorIndexesFormat();
-        resetHistory();
-    }
-
-    public void InitiateRotorIndexesFormat(){
+    public void initInitialRotorsIndexesFormat(){
         StringBuilder res=new StringBuilder();
         res.append("<");
         for (int i = 0; i < chosenRotors.length; i++) {
-            res.append(getRotorByIndex(chosenRotors[i]).getRotorId());
-            res.append("(");
+            res.append(getRotorByIndex(chosenRotors[i]).getRotorId()).append("(");;
             res.append(getRotorByIndex(chosenRotors[i]).getNotch()).append(")");
             if(i!=chosenRotors.length-1)
                 res.append(",");
@@ -192,25 +186,25 @@ public class Enigma {
         res.append(">");
         FormattedRotorsIndexes= res.toString();
     }
-
     public MachineDTO getMachineDTO(){
-        return new MachineDTO(rotors,usedRotors,reflectors.length,chosenReflectorId,chosenRotors,encryptedMessages);
+        return new MachineDTO(rotors,usedRotors,reflectors.length,chosenReflectorId,chosenRotors,encryptMessages);
 
     }
-
     public SettingsDTO getSettingsDTO(){
-        return new SettingsDTO(chosenRotors,InitialRotorsTop,chosenReflectorId,plugBoard.getPlugs());
+        int[] notches=new int[chosenRotors.length];
+        for (int i = 0; i < chosenRotors.length; i++) {
+            notches[i]=getRotorByIndex(chosenRotors[i]).getNotch();
+        }
+        return new SettingsDTO(chosenRotors,notches,getRotorTops(),chosenReflectorId,plugBoard.getPlugs());
     }
 
-    public HistoryDTO getHistoryDTO(){
-        return new HistoryDTO(messagesEncryptionTime,messagesBeforeEncrypt,messagesAfterEncrypt);
+    public char[] getRotorTops(){
+        char[] res=new char[chosenRotors.length];
+        for (int i = 0; i < chosenRotors.length; i++) {
+            res[i]=getRotorByIndex(chosenRotors[i]).getTop();
+        }
+        return res;
     }
-
-
-    public char[] getInitialRotorsTop() {
-        return InitialRotorsTop;
-    }
-
     public String getFormattedRotorsIndexes() {
         return FormattedRotorsIndexes;
     }

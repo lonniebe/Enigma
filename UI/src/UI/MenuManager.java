@@ -8,13 +8,11 @@ public class MenuManager {
     public static String[] GetMenu() {
         return MM;
     }
-
     public static void PrintMenu(String[] Menu) {
         for (String menu : Menu) {
             System.out.println(menu);
         }
     }
-
     public static int getInputForMenu(String[] menu) {
         Scanner sc = new Scanner(System.in);
         int length = 9;
@@ -35,11 +33,6 @@ public class MenuManager {
         } while (!valid);
         return userIntegerInput;
     }
-
-    public static boolean isValidInRange(int input, int a, int b) {
-        return input >= a && input <= b;
-    }
-
     private static final String[] MM = {
             " ", "------ Main Menu: ------",
             "1- Load an XML file.",

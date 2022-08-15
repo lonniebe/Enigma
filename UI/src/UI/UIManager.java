@@ -15,6 +15,8 @@ import static UI.Settings.*;
 
 public class  UIManager {
     private static final Enigma enigma=new Enigma();
+
+    private static String formattedInitialSettings;
     private static boolean hasSettings=false;
     private static boolean hasMachine=false;
 
@@ -43,31 +45,27 @@ public class  UIManager {
     }
 
     public static void getMachineHistory() {
-        HistoryDTO historyDTO=enigma.getHistoryDTO();
-        int size=historyDTO.getMessagesAfterEncrypt().size();
-        if(size==0){
-            System.out.println("There is no history to the machine.");
-        }
-        else{
-            for (int i = 0; i < size; i++) {
-                System.out.println(historyDTO.getMessagesBeforeEncrypt().get(i)+" ---> "+
-                                    historyDTO.getMessagesAfterEncrypt().get(i)+" ( "+
-                                    historyDTO.getMessagesEncryptionTime().get(i)+" Nano seconds).");
+        /*HistoryDTO historyDTO=enigma.getHistoryDTO();
+        int sizeOfSettings=historyDTO.getFileIndexOfSettings();
+        for (int i = 0; i < sizeOfSettings; i++) {
+            System.out.println("For Settings : "+historyDTO.getSettingsHistory().get(i));
+            for (int j = 0; j < historyDTO.getEncryptedMessages().get(i); j++) {
+
 
             }
-        }
+
+        }*/
+
     }
 
     public static void setSettingsAutomatically() {
         if (!hasMachine) {
             System.out.println("Please initiate machine's Hardware before doing this.");
         } else {
-            enigma.initSettings(setRandomSettings(enigma.getABC(), enigma.getNumberOfReflectors(), enigma.getCountOfRotors()));
+            enigma.initSettings(setRandomSettings(enigma.getABC(), enigma.getCountOfRotors()));
             hasSettings = true;
         }
     }
-
-
     public static void loadXML(){
         Scanner sc=new Scanner(System.in);
         while(true){
@@ -87,8 +85,6 @@ public class  UIManager {
             }
         }
     }
-
-
     public static void start() throws Exception {
         while(true){
             String[] mainMenu=GetMenu();
@@ -117,7 +113,6 @@ public class  UIManager {
             }
         }
     }
-
     public static boolean checkEncryption(String input){
         for (int i = 0; i < input.length(); i++) {
             if(enigma.getABC().indexOf(input.charAt(i))==-1){
@@ -133,11 +128,20 @@ public class  UIManager {
             SettingsDTO settings = getSettings(enigma.getABC(), enigma.getCountOfRotors(), enigma.getNumberOfReflectors());
             if(settings==null)
                 return;
+            settings.setRotorsNotch(getUsedRotorsNotches(settings.getUserRotorIndexes()));
             enigma.initSettings(settings);
+            formattedInitialSettings=enigma.getSettingsDTO().getFormattedSettings();
             hasSettings = true;
         }
     }
 
+    public static int[] getUsedRotorsNotches(int[] chosenRotors){
+        int[] notches=new int[chosenRotors.length];
+        for (int i = 0; i < chosenRotors.length; i++) {
+            notches[i]=enigma.getRotorByIndex(chosenRotors[i]).getNotch();
+        }
+        return notches;
+    }
     public static void printMachineHardware(){
         if(hasMachine) {
             MachineDTO machineDTO = enigma.getMachineDTO();
@@ -155,27 +159,12 @@ public class  UIManager {
             System.out.println("You have to set the machine to see the details.");
         }
     }
-
     public static void printMachineSettings(){
         if (hasSettings) {
             SettingsDTO settingsDTO = enigma.getSettingsDTO();
-            StringBuilder currentRotorsIndexes=new StringBuilder();
-            String initialRotorsIndexes= enigma.getFormattedRotorsIndexes();
-            String initialRotorsTops= enigma.getFormattedInitiatedRotorsTops();
-            String currentRotorsTops=enigma.getFormattedCurrentRotorsTops();
-            String reflection = "<" + settingsDTO.getUserChosenReflection() + ">";
-            for (int i = 0; i < settingsDTO.getUserRotorIndexes().length; i++) {
-                int index=settingsDTO.getUserRotorIndexes()[i];
-                int initialNotch=enigma.getRotorByIndex(index).getInitialNotch();
-                int currentNotch=enigma.getRotorByIndex(index).getNotch();
-                currentRotorsIndexes.append(index).append("(").append(currentNotch).append(")");
-                if(i!=settingsDTO.getUserRotorIndexes().length-1){
-                    currentRotorsIndexes.append(",");
-                }
-            }
-            String Plugs= getFormattedPlugs();
-            System.out.println("Initial Settings: "+initialRotorsIndexes+initialRotorsTops+reflection+Plugs);
-            System.out.println("Current Settings: "+"<"+currentRotorsIndexes+">"+currentRotorsTops+reflection+Plugs);
+            String currentSettings=settingsDTO.getFormattedSettings();
+            System.out.println("Initial Settings: "+formattedInitialSettings);
+            System.out.println("Current Settings: "+currentSettings);
         }
     }
     public static String getFormattedPlugs(){
@@ -192,4 +181,20 @@ public class  UIManager {
         return res.substring(0,res.length()-1);
     }
 
+    public static void setInitialFormattedSettings(SettingsDTO settingsDTO){
+        String initialRotorsIndexes= enigma.getFormattedRotorsIndexes();
+        String initialRotorsTops= enigma.getFormattedInitiatedRotorsTops();
+        String reflection = "<" + settingsDTO.getUserChosenReflection() + ">";
+        for (int i = 0; i < settingsDTO.getUserRotorIndexes().length; i++) {
+            int index=settingsDTO.getUserRotorIndexes()[i];
+            int initialNotch=enigma.getRotorByIndex(index).getInitialNotch();
+            int currentNotch=enigma.getRotorByIndex(index).getNotch();
+        }
+        String Plugs= getFormattedPlugs();
+        formattedInitialSettings=initialRotorsIndexes+initialRotorsTops+reflection+Plugs;
+    }
+
+    public static String getFormattedInitialSettings() {
+        return formattedInitialSettings;
+    }
 }
